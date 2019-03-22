@@ -2,8 +2,12 @@
 **/.terraform/*
 
 # .tfstate files
-*.tfstate
-*.tfstate.*
+**.tfstate
+**.tfstate.*
 
 # .tfvars files
-*.tfvars
+**.pem
+**.pub
+
+# credencials
+**cred.json
