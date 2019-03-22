@@ -6,6 +6,10 @@ provider "google" {
   zone    = "${var.zone}"
 }
 
+resource "tls_private_key" "createKeys2" {
+  algorithm = "RSA"
+}
+
 resource "google_compute_instance" "default" {
   name         = "${var.prefix}-vm-01"
   machine_type = "g1-small"
@@ -42,11 +46,11 @@ resource "google_compute_instance" "default" {
       type        = "ssh"
       user        = "devops"
       timeout     = "500s"
-      private_key = "${file("files/devops.pem")}"
+      private_key = "${tls_private_key.createKeys2.private_key_pem}"
   }
 
   metadata {
-    sshKeys = "devops:${file("files/devops.pub")}"
+    sshKeys = "devops:${tls_private_key.createKeys2.public_key_openssh}"
   }
 
   network_interface {
