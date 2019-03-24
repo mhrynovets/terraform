@@ -1,7 +1,7 @@
 
 resource "azurerm_virtual_machine" "main-vms" {
   count                 = "${var.vms_count}"
-  name                  = "${var.prefix}-vm-${count.index}"
+  name                  = "${var.prefix}-vms-${count.index}"
   location              = "${azurerm_resource_group.main-rg.location}"
   resource_group_name   = "${azurerm_resource_group.main-rg.name}"
   network_interface_ids = ["${element(azurerm_network_interface.main-nic.*.id, count.index)}"]
@@ -26,7 +26,7 @@ resource "azurerm_virtual_machine" "main-vms" {
     //computer_name  = "${var.prefix}-vm-${count.index}"
     computer_name  = "${element(azurerm_public_ip.main-ip.*.domain_name_label, count.index)}"
     admin_username = "devops"
-    //admin_password = "Password1234!"
+    admin_password = "Password1237!"
   }
   os_profile_linux_config {
     disable_password_authentication = true
@@ -36,10 +36,27 @@ resource "azurerm_virtual_machine" "main-vms" {
     }]
   }
 
+  tags = "${merge(
+    local.common_tags,
+    map(
+      "custom-vm", "${var.prefix}-vm"
+    )
+  )}"
+}
+
+resource "null_resource" "copy-test-file" {
+  count = "${var.vms_count}"
+  
+  triggers {
+    //vms_ids = "${azurerm_virtual_machine.main-vms.*.id}"
+    vms_ids = "${element(azurerm_virtual_machine.main-vms.*.id, count.index)}"
+  }  
+
   connection {
       //host = "${element(azurerm_public_ip.main-ip.*.domain_name_label, count.index)}"
       //host = "${element(azurerm_public_ip.main-ip.*.ip_address, count.index)}"
-      host = "${element(data.azurerm_public_ip.main-data-ip.*.ip_address, count.index)}"
+      host = "${element(azurerm_public_ip.main-ip.*.fqdn, count.index)}"
+      //host = "${element(data.azurerm_public_ip.main-data-ip.*.ip_address, count.index)}"
       user = "devops"
       type = "ssh"
       private_key = "${tls_private_key.main-tls.private_key_pem}"
@@ -54,15 +71,13 @@ resource "azurerm_virtual_machine" "main-vms" {
 
   provisioner "remote-exec" {
     inline = [
-      "chmod +x /tmp/initweb.sh",
+      "chmod a+x /tmp/initweb.sh",
       "/tmp/initweb.sh",
     ]
   }
-
-  tags = "${merge(
-    local.common_tags,
-    map(
-      "custom-vm", "${var.prefix}-vm"
-    )
-  )}"
+  depends_on = [
+    "azurerm_virtual_machine.main-vms", 
+    "data.azurerm_public_ip.main-data-ip", 
+    "azurerm_public_ip.main-ip"
+  ]
 }

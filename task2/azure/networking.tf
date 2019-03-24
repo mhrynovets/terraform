@@ -95,6 +95,7 @@ resource "azurerm_public_ip" "main-ip" {
 
 data "azurerm_public_ip" "main-data-ip" {
   count               = "${var.vms_count}"
+
   name                = "${element(azurerm_public_ip.main-ip.*.name, count.index)}"
   resource_group_name = "${azurerm_resource_group.main-rg.name}"
 }
