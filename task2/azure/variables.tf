@@ -31,5 +31,5 @@ variable "dnsforpubip" {
 
 variable "osimage" {
   description = "Which OS on VMs to use"
-  default = "debian-cloud/debian-8"
+  default = "Canonical,UbuntuServer,18.04-LTS,latest"
 }

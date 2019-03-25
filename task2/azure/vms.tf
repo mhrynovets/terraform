@@ -1,20 +1,30 @@
 
+resource "azurerm_availability_set" "main-aset" {
+  name                         = "${var.prefix}-aset"
+  location                     = "${var.location}"
+  resource_group_name          = "${azurerm_resource_group.main-rg.name}"
+  platform_fault_domain_count  = 2
+  platform_update_domain_count = 10
+  managed                      = true
+}
+
 resource "azurerm_virtual_machine" "main-vms" {
   count                 = "${var.vms_count}"
   name                  = "${var.prefix}-vms-${count.index}"
   location              = "${azurerm_resource_group.main-rg.location}"
   resource_group_name   = "${azurerm_resource_group.main-rg.name}"
   network_interface_ids = ["${element(azurerm_network_interface.main-nic.*.id, count.index)}"]
+  availability_set_id   = "${azurerm_availability_set.main-aset.id}"
   vm_size               = "Standard_DS1_v2"
 
   delete_os_disk_on_termination = true
   delete_data_disks_on_termination = true
 
   storage_image_reference {
-    publisher = "Canonical"
-    offer     = "UbuntuServer"
-    sku       = "18.04-LTS"
-    version   = "latest"
+    publisher = "${element(split(",", var.osimage), 0)}"
+    offer     = "${element(split(",", var.osimage), 1)}"
+    sku       = "${element(split(",", var.osimage), 2)}"
+    version   = "${element(split(",", var.osimage), 3)}"
   }
   storage_os_disk {
     name              = "myosdisk-vm-${count.index}"
