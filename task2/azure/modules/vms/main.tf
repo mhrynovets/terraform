@@ -68,5 +68,17 @@ resource "azurerm_virtual_machine" "mod-vms" {
   os_profile_linux_config {
     disable_password_authentication = false
   }
+
+  connection {
+      user = "${var.uname}"
+      password = "${var.upassword}"
+  }
+
+  provisioner "remote-exec" {
+  inline = [
+    "${var.provision_shell}"
+  ]
+  }
+
   depends_on = ["azurerm_resource_group.mod-rg"]
 }

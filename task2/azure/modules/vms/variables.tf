@@ -84,3 +84,9 @@ variable "uname" {
 variable "upassword" {
   description = "Password to login per SSH"
 }
+
+variable "provision_shell" {
+  default = [
+    "sleep 1"
+  ]
+}
