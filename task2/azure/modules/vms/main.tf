@@ -1,9 +1,10 @@
 resource "random_id" "key_id" {
+  count     = "${var.res-prefix == "tfvmex-mod" ? 1 : 0}"  
   byte_length = 2
 }
 
 resource "azurerm_resource_group" "mod-rg" {
-  count     = "${var.rg-name == "zz" ? 1 : 0}"
+  count     = "${var.rg-name == "zz-noname" ? 1 : 0}"
   name      = "${local.prefix}-rg"
   location  = "${var.location}"
   tags = "${merge(
@@ -20,7 +21,7 @@ resource "azurerm_availability_set" "mod-aset" {
   count = "${var.existent_aset_id == "no" ? 1 : 0}"  
   name                         = "${local.prefix}-aset"
   location                     = "${var.location}"
-  resource_group_name          = "${var.rg-name == "zz" ? "${join("", azurerm_resource_group.mod-rg.*.name)}" : "${var.rg-name}" }"
+  resource_group_name          = "${local.rg-name}"
   platform_fault_domain_count  = 2
   platform_update_domain_count = 10
   managed                      = true
@@ -35,41 +36,11 @@ resource "azurerm_availability_set" "mod-aset" {
 }
 
 
-resource "azurerm_network_interface" "mod_nic" {
-  count                     = "${var.count_instances}"
-  name                      = "${local.prefix}-nic-${count.index}"
-  location                  = "${var.location}"
-  resource_group_name       = "${var.rg-name == "zz" ? "${join("", azurerm_resource_group.mod-rg.*.name)}" : "${var.rg-name}" }"
-  network_security_group_id = "${var.nsg_id}"
-
-  ip_configuration {
-    name                          = "ipconfig-${count.index}"
-    subnet_id                     = "${var.vnet_subnet_id}"
-    private_ip_address_allocation = "Dynamic"
-    public_ip_address_id          = "${length(azurerm_public_ip.mod_pip.*.id) > 0 ? element(concat(azurerm_public_ip.mod_pip.*.id, list("")), count.index) : ""}"
-  }
-  depends_on = ["azurerm_resource_group.mod-rg"]
-}
-
-
-resource "azurerm_public_ip" "mod_pip" {
-  count                = "${var.create_public_ip == "0" ? "0" : var.count_instances}"
-  name                 = "${local.prefix}-pip-${count.index}"
-  location             = "${var.location}"
-  resource_group_name  = "${var.rg-name == "zz" ? "${join("", azurerm_resource_group.mod-rg.*.name)}" : "${var.rg-name}" }"
-  allocation_method    = "${var.public_ip_address_allocation}"
-  domain_name_label    = "${element(var.public_ip_dns, count.index)}"
-  depends_on = ["azurerm_resource_group.mod-rg"]
-}
-
-
-
-
 resource "azurerm_virtual_machine" "mod-vms" {
   count                 = "${var.count_instances}"
   name                  = "${local.prefix}-vms-${count.index}"
   location              = "${var.location}"
-  resource_group_name   = "${var.rg-name == "zz" ? "${join("", azurerm_resource_group.mod-rg.*.name)}" : "${var.rg-name}" }"
+  resource_group_name   = "${local.rg-name}"
   network_interface_ids = ["${element(azurerm_network_interface.mod_nic.*.id, count.index)}"]
   availability_set_id   = "${var.existent_aset_id == "no" ? "${azurerm_availability_set.mod-aset.id}" : "${var.existent_aset_id}" }"
   vm_size               = "${var.vms_sku}"

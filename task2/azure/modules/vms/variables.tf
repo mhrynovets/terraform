@@ -4,7 +4,8 @@ locals {
     //"Component" = "task2-module-${var.prefix}-${random_id.key_id.dec}"
     "Component" = "task2-module-${local.prefix}"
   }
-  prefix = "${var.res-prefix == "tfvmex-mod" ? "${var.res-prefix}-${random_id.key_id.dec}" : "${var.res-prefix}" }"
+  prefix = "${var.res-prefix == "tfvmex-mod" ? "${var.res-prefix}-${join("",random_id.key_id.*.dec)}" : "${var.res-prefix}" }"
+  rg-name = "${var.rg-name == "zz-noname" ? "${join("", azurerm_resource_group.mod-rg.*.name)}" : "${var.rg-name}" }"
 }
 
 // Global vars
@@ -22,13 +23,16 @@ variable "location" {
   description = "Which cloud region should be used"
   default = "West US 2"
 }
-variable "rg-name" {
-  description = "Define name of pre-existed resource group for VMs"
-  default     = "zz"
-}
 variable "count_instances" {
   description = "Count of vms to be created"
   default     = "1"
+}
+
+
+// Resource group variables
+variable "rg-name" {
+  description = "Define name of pre-existed resource group for VMs"
+  default     = "zz-noname"
 }
 
 
