@@ -1,7 +1,7 @@
 # Define the common tags for all resources in module
 locals {
   common_module_tags = { "Component" = "task2-module-${local.prefix}" }
-  prefix = "${var.res-prefix == "tfvmex-mod" ? "${var.res-prefix}-${format("subnet-%06d", random_id.key_id.dec)}" : "${var.res-prefix}" }"
+  prefix = "${var.res-prefix == "tfvmex-mod" ? "${var.res-prefix}-${random_id.key_id.dec}" : "${var.res-prefix}" }"
   rg-name = "${var.rg-name == "zz-noname" ? "${join("", azurerm_resource_group.mod-rg.*.name)}" : "${var.rg-name}" }"
   vnet-name = "${var.existing_vname == "zz-noname" ? "${join("", azurerm_virtual_network.mod-vnet.*.name)}" : "${var.existing_vname}" }"
 }
