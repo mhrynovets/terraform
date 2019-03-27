@@ -8,9 +8,19 @@ locals {
   }
 }
 
+variable "uname" {
+  description = "Virtual machines admin's username"
+  default = "devops"
+}
+
+variable "upass" {
+  description = "Virtual machines admin's username"
+  default = "Password1234!"
+}
+
 variable "prefix" {
-  description = "Resources naming prefix"
-  default = "tfvmex"
+  description = "Resources naming prefix, shoult NOT contain ` ~ ! @ # $$ % ^ & * ( ) = + _ [ ] { } \\ | ; : ' \" , < > / ?.\""
+  default = "testapp"
 }
 
 variable "location" {
@@ -18,8 +28,18 @@ variable "location" {
   default = "West US 2"
 }
 
-variable "vms_count" {
+variable "domain_name_lb" {
   description = "How much VMs are needed"
-  default = 1
+  default = "1mylbdemq"
 }
 
+variable "vms_count" {
+  description = "How much VMs are needed"
+  default = "1"
+}
+
+variable "web_shell" {
+  default = [
+    "sleep 1"
+  ]
+}

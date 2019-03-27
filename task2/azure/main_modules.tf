@@ -2,92 +2,54 @@ provider "azurerm" {
   version = "~> 1.23"
 }
 
-variable "web_shell" {
-  default = [
-    "sudo apt-get update > /dev/null 2>&1",
-    "sudo apt-get install -yq nginx > /dev/null 2>&1",
-    "echo \"Hi, this is VM <strong>$(hostname)</strong> with IP: <strong>$(curl ifconfig.io)</strong>\" | sudo tee /var/www/html/index.html  > /dev/null 2>&1"
-  ]
-}
-
 module "vnet" {
   source = "modules/vnet"
 
-  res-prefix = "testapp"
+  res-prefix = "${var.prefix}"
 }
 
 module "vms" {
   source = "modules/vms"
 
   rg-name = "${module.vnet.out-rg-name}"
-  res-prefix = "testapp"
-  upassword = "Password1234!"
+  res-prefix = "${var.prefix}"
+
+  uname = "${var.uname}"
+  upassword = "${var.upass}"
+
   vnet_subnet_id = "${element(module.vnet.out-subnet-ids, 0)}"
-  count_instances = "2"
-  create_public_ip = "yes"
-  nsg_id = "${azurerm_network_security_group.main-nsg.id}"  
-  public_ip_dns = [
-    "asfdasdsdasfd-1",
-    "asfdasdsdasfd-2"
-  ]
+  count_instances = "${var.vms_count}"
   provision_shell = "${var.web_shell}"
 }
-
 
 module "lb" {
   source = "modules/loadbalancer"
   
-  dnsforpubip = "mylbdemq"
-  nic_ids = "${module.vms.out-nic_ids}"
-  //nic_count = "${length(module.vms.out-nic_ids)}"
-  nic_count = "2"
   rg-name = "${module.vms.out-rg-name}"
-  res-prefix = "testapp"
+  res-prefix = "${var.prefix}"
+
+  dnsforpubip = "${var.domain_name_lb}"
+  nic_ids = "${module.vms.out-nic_ids}"
+  nic_count = "${var.vms_count}"
 }
 
+resource "null_resource" "copy-test-file" {
+  count = "${var.vms_count}"
 
-
-
-
-
-
-output "testout" {
-  value = "${module.vms.out-nic_ids}"
-}
-
-
-resource "azurerm_network_security_group" "main-nsg" {
-  name                = "${var.prefix}-nsg"
-  location            = "${var.location}"
-  resource_group_name = "${module.vnet.out-rg-name}"
-
-  security_rule {
-    name                       = "HTTP"
-    priority                   = 100
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "80"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
+  connection {
+    host      = "${join("", module.lb.out-pip_fqdn)}"
+    user      = "${var.uname}"
+    password  = "${var.upass}"
+    type      = "ssh"
+    port      = "837${count.index}"
   }
-  security_rule {
-    name                       = "SSH"
-    priority                   = 101
-    direction                  = "Inbound"
-    access                     = "Allow"
-    protocol                   = "Tcp"
-    source_port_range          = "*"
-    destination_port_range     = "22"
-    source_address_prefix      = "*"
-    destination_address_prefix = "*"
+  provisioner "remote-exec" {
+    inline = [
+      "${var.web_shell}"
+    ]
   }
-
-  tags = "${merge(
-    local.common_tags,
-    map(
-      "custom-nsg", "${var.prefix}-nsg"
-    )
-  )}"  
+  depends_on = [
+    "module.vms", 
+    "module.lb"
+  ]
 }

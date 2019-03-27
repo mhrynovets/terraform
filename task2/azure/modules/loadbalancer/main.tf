@@ -23,7 +23,7 @@ resource "azurerm_public_ip" "lbpip" {
   location            = "${var.location}"
   resource_group_name = "${local.rg-name}"
   allocation_method   = "Dynamic"
-  domain_name_label   = "${var.dnsforpubip}-lb"
+  domain_name_label   = "${var.dnsforpubip}"
 }
 
 resource "azurerm_lb" "lb" {
@@ -46,9 +46,9 @@ resource "azurerm_lb_backend_address_pool" "backendpool" {
 resource "azurerm_lb_nat_rule" "tcp" {
   resource_group_name            = "${local.rg-name}"
   loadbalancer_id                = "${azurerm_lb.lb.id}"
-  name                           = "SSH-VM-${count.index +1}"
+  name                           = "SSH-VM-${count.index}"
   protocol                       = "tcp"
-  frontend_port                  = "3300${count.index +1}"
+  frontend_port                  = "837${count.index}"
   backend_port                   = 22
   frontend_ip_configuration_name = "LoadBalancerFrontEnd"
   count                          = "${var.nic_count}"
