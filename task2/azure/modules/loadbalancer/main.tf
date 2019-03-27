@@ -26,15 +26,6 @@ resource "azurerm_public_ip" "lbpip" {
   domain_name_label   = "${var.dnsforpubip}-lb"
 }
 
-output "out-pip_ips" {
-  value = ["${azurerm_public_ip.lbpip.*.ip_address}"]
-}
-output "out-pip_fqdn" {
-  value = ["${azurerm_public_ip.lbpip.*.fqdn}"]
-}
-
-
-
 resource "azurerm_lb" "lb" {
   resource_group_name = "${local.rg-name}"
   name                = "${local.prefix}-lb"
