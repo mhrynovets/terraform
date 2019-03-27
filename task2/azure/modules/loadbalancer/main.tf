@@ -51,7 +51,7 @@ resource "azurerm_lb_nat_rule" "tcp" {
   frontend_port                  = "3300${count.index +1}"
   backend_port                   = 22
   frontend_ip_configuration_name = "LoadBalancerFrontEnd"
-  count                          = "${length(var.nic_ids)}"
+  count                          = "${var.nic_count}"
 }
 
 resource "azurerm_lb_probe" "lbprobe" {
@@ -83,5 +83,5 @@ resource "azurerm_network_interface_backend_address_pool_association" "nic-lb-ba
   network_interface_id    = "${element(var.nic_ids, count.index)}"
   ip_configuration_name   = "ipconfig-${count.index}"
   backend_address_pool_id = "${azurerm_lb_backend_address_pool.backendpool.id}"
-  count                   = "${length(split(",",var.nic_ids))}"
+  count                   = "${var.nic_count}"
 }

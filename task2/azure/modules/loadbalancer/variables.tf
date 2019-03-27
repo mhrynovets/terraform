@@ -40,4 +40,8 @@ variable "rg-name" {
 variable "dnsforpubip" { }
 
 
-variable "nic_ids" { }
+variable "nic_ids" { 
+  default     = [""]
+}
+
+variable "nic_count" { }

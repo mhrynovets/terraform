@@ -38,7 +38,9 @@ module "lb" {
   source = "modules/loadbalancer"
   
   dnsforpubip = "mylbdemq"
-  nic_ids = "${join(",", module.vms.out-nic_ids)}"
+  nic_ids = "${module.vms.out-nic_ids}"
+  //nic_count = "${length(module.vms.out-nic_ids)}"
+  nic_count = "2"
   rg-name = "${module.vms.out-rg-name}"
   res-prefix = "testapp"
 }
