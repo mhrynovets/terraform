@@ -26,6 +26,15 @@ resource "azurerm_public_ip" "lbpip" {
   domain_name_label   = "${var.dnsforpubip}-lb"
 }
 
+output "out-pip_ips" {
+  value = ["${azurerm_public_ip.lbpip.*.ip_address}"]
+}
+output "out-pip_fqdn" {
+  value = ["${azurerm_public_ip.lbpip.*.fqdn}"]
+}
+
+
+
 resource "azurerm_lb" "lb" {
   resource_group_name = "${local.rg-name}"
   name                = "${local.prefix}-lb"
@@ -84,4 +93,11 @@ resource "azurerm_network_interface_backend_address_pool_association" "nic-lb-ba
   ip_configuration_name   = "ipconfig-${count.index}"
   backend_address_pool_id = "${azurerm_lb_backend_address_pool.backendpool.id}"
   count                   = "${var.nic_count}"
+}
+
+resource "azurerm_network_interface_nat_rule_association" "test" {
+  network_interface_id  = "${element(var.nic_ids, count.index)}"
+  ip_configuration_name = "ipconfig-${count.index}"
+  nat_rule_id           = "${element(azurerm_lb_nat_rule.tcp.*.id, count.index)}"
+  count                 = "${var.nic_count}"
 }
