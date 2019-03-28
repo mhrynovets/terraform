@@ -25,7 +25,7 @@ resource "azurerm_resource_group" "main-rg" {
 
 module "vnet" {
   //source = "modules/vnet"
-  source = "git::https://github.com/mhrynovets/terraform.git//task2/azure/modules/vnet?ref=v2.3"
+  source = "git::https://github.com/mhrynovets/terraform.git//task2/azure/modules/vnet?ref=v3.0"
 
   res-prefix = "${var.prefix}"
   rg-name = "${azurerm_resource_group.main-rg.name}"
@@ -34,7 +34,7 @@ module "vnet" {
 
 module "vms" {
   //source = "modules/vms"
-  source = "git::https://github.com/mhrynovets/terraform.git//task2/azure/modules/vms?ref=v2.3"
+  source = "git::https://github.com/mhrynovets/terraform.git//task2/azure/modules/vms?ref=v3.0"
 
   rg-name = "${azurerm_resource_group.main-rg.name}"
   location  = "${var.location}"
@@ -52,7 +52,7 @@ module "vms" {
 
 module "lb" {
   //source = "modules/loadbalancer"
-  source = "git::https://github.com/mhrynovets/terraform.git//task2/azure/modules/loadbalancer?ref=v2.3"
+  source = "git::https://github.com/mhrynovets/terraform.git//task2/azure/modules/loadbalancer?ref=v3.0"
   
   rg-name = "${azurerm_resource_group.main-rg.name}"
   location  = "${var.location}"
