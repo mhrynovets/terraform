@@ -64,7 +64,7 @@ resource "azurerm_virtual_machine" "mod-vms" {
   resource_group_name   = "${local.rg-name}"
   network_interface_ids = ["${element(azurerm_network_interface.mod_nic.*.id, count.index)}"]
   availability_set_id   = "${var.existent_aset_id == "no" ? "${azurerm_availability_set.mod-aset.id}" : "${var.existent_aset_id}" }"
-  vm_size               = "${var.vms_sku}"
+  vm_size               = "${lower(var.tags["Environment"]) == "prod" ? "Standard_DS1_v2" : "Standard_B1ms"}"
 
   delete_os_disk_on_termination = true
   delete_data_disks_on_termination = true
@@ -93,6 +93,14 @@ resource "azurerm_virtual_machine" "mod-vms" {
       key_data = "${ chomp(data.azurerm_key_vault_secret.ssh_pub.value) }"
     }]
   }
+
+  tags = "${merge(
+    var.tags,
+    local.common_tags,
+    map(
+      "custom-vm-tag", "${local.prefix}-vm"
+    )
+  )}"
 
   depends_on = ["azurerm_resource_group.mod-rg"]
 }

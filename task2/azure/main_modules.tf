@@ -34,6 +34,7 @@ module "vms" {
   vnet_subnet_id = "${element(module.vnet.out-subnet-ids, 0)}"
   count_instances = "${var.vms_count}"
   provision_shell = "${var.web_shell}"
+tags = "${local.common_tags}"
 }
 
 module "lb" {
