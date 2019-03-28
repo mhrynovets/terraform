@@ -81,3 +81,11 @@ resource "null_resource" "copy-test-file" {
     "module.lb"
   ]
 }
+
+terraform {
+  backend "azurerm" {
+    storage_account_name = "tfsaservice"
+    container_name       = "terraform"
+    key                  = "main.terraform.tfstate"
+  }
+}
