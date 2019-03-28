@@ -2,16 +2,30 @@ provider "azurerm" {
   version = "~> 1.23"
 }
 
+resource "azurerm_resource_group" "main-rg" {
+  name      = "${local.res-group-name}"
+  location  = "${var.location}"
+  tags = "${merge(
+    local.common_tags,
+    map(
+      "custom-rg-tag", "${local.res-group-name}-rg"
+    )
+  )}"
+}
+
 module "vnet" {
   source = "modules/vnet"
 
   res-prefix = "${var.prefix}"
+  rg-name = "${azurerm_resource_group.main-rg.name}"
+  location  = "${var.location}"
 }
 
 module "vms" {
   source = "modules/vms"
 
-  rg-name = "${module.vnet.out-rg-name}"
+  rg-name = "${azurerm_resource_group.main-rg.name}"
+  location  = "${var.location}"
   res-prefix = "${var.prefix}"
 
   uname = "${var.uname}"
@@ -25,12 +39,23 @@ module "vms" {
 module "lb" {
   source = "modules/loadbalancer"
   
-  rg-name = "${module.vms.out-rg-name}"
+  rg-name = "${azurerm_resource_group.main-rg.name}"
+  location  = "${var.location}"
   res-prefix = "${var.prefix}"
 
   dnsforpubip = "${var.domain_name_lb}"
   nic_ids = "${module.vms.out-nic_ids}"
   nic_count = "${var.vms_count}"
+}
+
+data "azurerm_key_vault" "keyvault" {
+  name                = "${var.kv-name}"
+  resource_group_name = "${var.kv-rg}"
+}
+
+data "azurerm_key_vault_secret" "ssh_key" {
+  name      = "${var.ky-ssh-key-name}"
+  key_vault_id = "${data.azurerm_key_vault.keyvault.id}"
 }
 
 resource "null_resource" "copy-test-file" {
@@ -39,7 +64,8 @@ resource "null_resource" "copy-test-file" {
   connection {
     host      = "${join("", module.lb.out-pip_fqdn)}"
     user      = "${var.uname}"
-    password  = "${var.upass}"
+    private_key = "${data.azurerm_key_vault_secret.ssh_key.value}"
+    //password  = "${var.upass}"
     type      = "ssh"
     port      = "837${count.index}"
   }

@@ -35,6 +35,27 @@ resource "azurerm_availability_set" "mod-aset" {
   depends_on = ["azurerm_resource_group.mod-rg"]
 }
 
+variable "kv-name" {
+  default = "tf-data-kv-2"
+}
+
+variable "kv-rg" {
+  default = "tf-service"
+}
+
+variable "ky-ssh-pub-name" {
+  default = "vms-ssh-pub"
+}
+
+data "azurerm_key_vault" "keyvault" {
+  name                = "${var.kv-name}"
+  resource_group_name = "${var.kv-rg}"
+}
+
+data "azurerm_key_vault_secret" "ssh_pub" {
+  name      = "${var.ky-ssh-pub-name}"
+  key_vault_id = "${data.azurerm_key_vault.keyvault.id}"
+}
 
 resource "azurerm_virtual_machine" "mod-vms" {
   count                 = "${var.count_instances}"
@@ -66,7 +87,11 @@ resource "azurerm_virtual_machine" "mod-vms" {
     admin_password = "${var.upassword}"
   }
   os_profile_linux_config {
-    disable_password_authentication = false
+    disable_password_authentication = true
+    ssh_keys = [{
+      path     = "/home/${var.uname}/.ssh/authorized_keys"
+      key_data = "${ chomp(data.azurerm_key_vault_secret.ssh_pub.value) }"
+    }]
   }
 
   depends_on = ["azurerm_resource_group.mod-rg"]
