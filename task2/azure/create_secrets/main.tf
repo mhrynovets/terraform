@@ -3,10 +3,11 @@ data "azurerm_client_config" "current" {}
 locals{
   rg-name = "tf-service"
   location = "westeurope"
+  kv-name = "tf-data-kv-2"
 }
 
 resource "azurerm_key_vault" "test" {
-  name                = "tf-data-kv-2"
+  name                = "${local.kv-name}"
   location            = "${local.location}"
   resource_group_name = "${local.rg-name}"
   tenant_id           = "${data.azurerm_client_config.current.tenant_id}"
@@ -33,28 +34,59 @@ resource "azurerm_key_vault" "test" {
   }
 }
 
-resource "tls_private_key" "main-tls" {
+resource "tls_private_key" "prod-tls" {
   algorithm = "RSA"
 }
 
-resource "local_file" "sshkey" {
-  content     = "${tls_private_key.main-tls.private_key_pem}"
-  filename = "demo.pem"
-}
-resource "local_file" "sshpub" {
-  content     = "${tls_private_key.main-tls.public_key_openssh}"
-  filename = "demo.pem.pub"
+resource "tls_private_key" "dev-tls" {
+  algorithm = "RSA"
 }
 
-resource "azurerm_key_vault_secret" "test" {
-  name     = "vms-ssh-key"
-  value    = "${tls_private_key.main-tls.private_key_pem}"
+
+//save to file to be available manual connect ssh 
+resource "local_file" "sshkey-prod" {
+  content     = "${tls_private_key.prod-tls.private_key_pem}"
+  filename = "demo-prod.pem"
+}
+
+resource "local_file" "sshkey-dev" {
+  content     = "${tls_private_key.dev-tls.private_key_pem}"
+  filename = "demo-dev.pem"
+}
+
+resource "local_file" "sshpub-prod" {
+  content     = "${tls_private_key.prod-tls.public_key_openssh}"
+  filename = "demo-prod.pem.pub"
+}
+
+resource "local_file" "sshpub-dev" {
+  content     = "${tls_private_key.dev-tls.public_key_openssh}"
+  filename = "demo-dev.pem.pub"
+}
+
+
+
+resource "azurerm_key_vault_secret" "save-key-prod" {
+  name     = "vms-ssh-key-prod"
+  value    = "${tls_private_key.prod-tls.private_key_pem}"
   key_vault_id = "${azurerm_key_vault.test.id}"
 }
 
-resource "azurerm_key_vault_secret" "test2" {
-  name     = "vms-ssh-pub"
-  value    = "${tls_private_key.main-tls.public_key_openssh}"
+resource "azurerm_key_vault_secret" "save-key-dev" {
+  name     = "vms-ssh-key-dev"
+  value    = "${tls_private_key.dev-tls.private_key_pem}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
+}
+
+resource "azurerm_key_vault_secret" "save-pub-prod" {
+  name     = "vms-ssh-pub-prod"
+  value    = "${tls_private_key.prod-tls.public_key_openssh}"
+  key_vault_id = "${azurerm_key_vault.test.id}"
+}
+
+resource "azurerm_key_vault_secret" "save-pub-dev" {
+  name     = "vms-ssh-pub-dev"
+  value    = "${tls_private_key.dev-tls.public_key_openssh}"
   key_vault_id = "${azurerm_key_vault.test.id}"
 }
 

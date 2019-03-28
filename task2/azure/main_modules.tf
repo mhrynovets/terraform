@@ -34,7 +34,8 @@ module "vms" {
   vnet_subnet_id = "${element(module.vnet.out-subnet-ids, 0)}"
   count_instances = "${var.vms_count}"
   provision_shell = "${var.web_shell}"
-tags = "${local.common_tags}"
+  tags = "${local.common_tags}"
+  ky-ssh-pub-name-prefix = "${var.ky-ssh-pub-name-prefix}"
 }
 
 module "lb" {
@@ -55,7 +56,7 @@ data "azurerm_key_vault" "keyvault" {
 }
 
 data "azurerm_key_vault_secret" "ssh_key" {
-  name      = "${var.ky-ssh-key-name}"
+  name      = "${var.ky-ssh-key-name-prefix}-${ lower(local.common_tags["Environment"]) }"
   key_vault_id = "${data.azurerm_key_vault.keyvault.id}"
 }
 

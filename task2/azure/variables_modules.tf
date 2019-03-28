@@ -55,7 +55,12 @@ variable "kv-rg" {
   default = "tf-service"
 }
 
-variable "ky-ssh-key-name" {
-  description = "Name of secret in Azure Key Vault, where is stored SSH key"
+variable "ky-ssh-key-name-prefix" {
+  description = "Prefix name of secret in Azure Key Vault, where is stored SSH key"
   default = "vms-ssh-key"
+}
+
+variable "ky-ssh-pub-name-prefix" {
+  description = "Prefix name of public cert in Azure Key Vault, where is stored SSH key"
+  default = "vms-ssh-pub"
 }

@@ -35,25 +35,13 @@ resource "azurerm_availability_set" "mod-aset" {
   depends_on = ["azurerm_resource_group.mod-rg"]
 }
 
-variable "kv-name" {
-  default = "tf-data-kv-2"
-}
-
-variable "kv-rg" {
-  default = "tf-service"
-}
-
-variable "ky-ssh-pub-name" {
-  default = "vms-ssh-pub"
-}
-
 data "azurerm_key_vault" "keyvault" {
   name                = "${var.kv-name}"
   resource_group_name = "${var.kv-rg}"
 }
 
 data "azurerm_key_vault_secret" "ssh_pub" {
-  name      = "${var.ky-ssh-pub-name}"
+  name      = "${var.ky-ssh-pub-name-prefix}-${var.tags["Environment"]}"
   key_vault_id = "${data.azurerm_key_vault.keyvault.id}"
 }
 

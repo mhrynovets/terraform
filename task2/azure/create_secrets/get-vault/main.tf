@@ -4,7 +4,7 @@ data "azurerm_key_vault" "keyvault" {
 }
 
 data "azurerm_key_vault_secret" "ssh_pub" {
-  name      = "vms-ssh-pub"
+  name      = "vms-ssh-pub-prod"
   // deprecated: vault_uri = "${data.azurerm_key_vault.keyvault.vault_uri}"
   key_vault_id = "${data.azurerm_key_vault.keyvault.id}"
 }
