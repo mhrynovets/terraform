@@ -1,6 +1,6 @@
-prefix = "demoCloud"
+prefix = "demoCloud-dev"
 vms_count = 1
-domain_name_lb = "demo-lb-vms"
+domain_name_lb = "demo-lb-vms-dev"
 web_shell = [
   "sudo apt-get update > /dev/null 2>&1",
   "sudo apt-get install -yq nginx > /dev/null 2>&1",

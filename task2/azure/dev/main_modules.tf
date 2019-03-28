@@ -2,6 +2,16 @@ provider "azurerm" {
   version = "~> 1.23"
 }
 
+locals {
+  common_tags = {
+    Component   = "task2"
+    Environment = "dev"
+    Orchestrator = "terra"
+  }
+  res-group-name = "${var.prefix}-rg"
+}
+
+
 resource "azurerm_resource_group" "main-rg" {
   name      = "${local.res-group-name}"
   location  = "${var.location}"
@@ -14,7 +24,8 @@ resource "azurerm_resource_group" "main-rg" {
 }
 
 module "vnet" {
-  source = "modules/vnet"
+  //source = "modules/vnet"
+  source = "git::https://github.com/mhrynovets/terraform.git//task2/azure/modules/vnet?ref=v2.3"
 
   res-prefix = "${var.prefix}"
   rg-name = "${azurerm_resource_group.main-rg.name}"
@@ -22,7 +33,8 @@ module "vnet" {
 }
 
 module "vms" {
-  source = "modules/vms"
+  //source = "modules/vms"
+  source = "git::https://github.com/mhrynovets/terraform.git//task2/azure/modules/vms?ref=v2.3"
 
   rg-name = "${azurerm_resource_group.main-rg.name}"
   location  = "${var.location}"
@@ -39,7 +51,8 @@ module "vms" {
 }
 
 module "lb" {
-  source = "modules/loadbalancer"
+  //source = "modules/loadbalancer"
+  source = "git::https://github.com/mhrynovets/terraform.git//task2/azure/modules/loadbalancer?ref=v2.3"
   
   rg-name = "${azurerm_resource_group.main-rg.name}"
   location  = "${var.location}"
@@ -86,6 +99,6 @@ terraform {
   backend "azurerm" {
     storage_account_name = "tfsaservice"
     container_name       = "terraform"
-    key                  = "main.terraform.tfstate"
+    key                  = "dev.terraform.tfstate"
   }
 }

@@ -1,14 +1,4 @@
 
-# Define the common tags for all resources
-locals {
-  common_tags = {
-    Component   = "task2"
-    Environment = "dev"
-    Orchestrator = "terra"
-  }
-  res-group-name = "${var.prefix}-rg"
-}
-
 variable "uname" {
   description = "Virtual machines admin's username"
   default = "devops"
